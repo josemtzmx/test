@@ -1,0 +1,34 @@
+SQL Test:
+select redemptionDate, redemptionCount,createDateTime
+from (select redemptionDate, redemptionCount,createDateTime,row_number() over (partition by redemptionDate order by createDateTime desc) as rn
+from tblRedemptions_ByDay
+where redemptionDate between '2023-10-30' and '2023-11-05'
+and retailerid  in ( select id from tblRetailers where retailerName='ABC Store') )
+where rn=1
+
+REDEMPTIONDATE	REDEMPTIONCOUNT
+2023-10-30	4274
+2023-10-31	5003
+2023-11-01	3930
+2023-11-03	3810
+2023-11-04	5224
+2023-11-05	3702
+
+Using the data set you produced from your query, answer the following questions: 
+1. Which date had the least number of redemptions and what was the redemption count? 
+Ans: 2023-11-05		3702
+2. Which date had the most number of redemptions and what was the redemption count? 
+Ans: 2023-11-04		5224
+3. What was the createDateTime for each redemptionCount in questions 1 and 2?
+For question 1 2023-11-06 11:00:00.000
+For question 2: 2023-11-05 11:00:00.000 
+
+ 4. Is there another method you can use to pull back the most recent redemption count, by redemption date, for the date range 2023-10-30 to 2023-11-05, for retailer "ABC Store"?
+ In words, describe how you would do this (no need to write a query, unless you’d like to)
+
+While inserting/updating records into the table set a flag (adding a is_most_recent boolean flag to the table or a valid_todt date field) 
+If the record exists for a particular retailerid,redemptiodate then change that atribute ( is_most_recent =false or valid_todt=getdate())
+then insert new record or update existing one with the new value and set either ( is_most_recent =true or valid_todt='9999/12/31')
+Normally this is done by using a MERGE SQL operation.
+with this, will be easier to select the most recent redemption count by filtering by any of these 2 new atributes 
+instead ordering and having this window function in the query. 
